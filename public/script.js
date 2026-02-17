@@ -7,7 +7,7 @@ const fileInput = document.getElementById("fileInput");
 
 
 // =======================
-// Typing Indicator Setup
+// Typing Indicator
 // =======================
 
 let typingDiv = document.createElement("div");
@@ -16,7 +16,7 @@ typingDiv.style.padding = "5px 20px";
 typingDiv.style.color = "gray";
 typingDiv.style.display = "none";
 
-messagesDiv.parentNode.insertBefore(typingDiv, messagesDiv.nextSibling);
+messagesDiv.appendChild(typingDiv);
 
 let typingTimeout;
 
@@ -38,6 +38,7 @@ messageInput.addEventListener("input", () => {
 
 socket.on("loadMessages", (msgs) => {
     messagesDiv.innerHTML = "";
+    messagesDiv.appendChild(typingDiv);
     msgs.forEach(addMessage);
 });
 
@@ -47,11 +48,13 @@ socket.on("chatMessage", (data) => {
 
 socket.on("clearMessages", () => {
     messagesDiv.innerHTML = "";
+    messagesDiv.appendChild(typingDiv);
 });
 
 socket.on("typing", (username) => {
     typingDiv.textContent = username + " is typing...";
     typingDiv.style.display = "block";
+    scrollToBottom();
 });
 
 socket.on("stopTyping", () => {
@@ -115,21 +118,51 @@ function addMessage(data) {
 
     if (data.file) {
 
-        div.innerHTML = `
-            <strong>${data.username}:</strong><br>
-            <img src="uploads/${data.file}" width="140"><br>
-            ${data.message || ""}
-        `;
+        const fileUrl = "uploads/" + data.file;
+        const ext = data.file.split(".").pop().toLowerCase();
 
+        div.innerHTML = `<strong>${data.username}:</strong><br>`;
+
+        let media;
+
+        // Video files
+        if (["mp4", "webm", "mov"].includes(ext)) {
+            media = document.createElement("video");
+            media.controls = true;
+            media.width = 200;
+        }
+
+        // Audio files
+        else if (["mp3", "wav", "ogg"].includes(ext)) {
+            media = document.createElement("audio");
+            media.controls = true;
+        }
+
+        // Image files (default)
+        else {
+            media = document.createElement("img");
+            media.width = 140;
+        }
+
+        media.src = fileUrl;
+        div.appendChild(media);
+
+        if (data.message) {
+            const text = document.createElement("div");
+            text.innerText = data.message;
+            div.appendChild(text);
+        }
+
+        // Download button
         const downloadBtn = document.createElement("button");
         downloadBtn.textContent = "download";
         downloadBtn.style.fontSize = "8px";
         downloadBtn.style.padding = "4px 6px";
-        downloadBtn.style.marginTop = "10px";
+        downloadBtn.style.marginTop = "8px";
 
         downloadBtn.onclick = function () {
             const link = document.createElement("a");
-            link.href = "uploads/" + data.file;
+            link.href = fileUrl;
             link.download = data.file;
             document.body.appendChild(link);
             link.click();
@@ -146,7 +179,7 @@ function addMessage(data) {
         `;
     }
 
-    messagesDiv.appendChild(div);
+    messagesDiv.insertBefore(div, typingDiv);
     scrollToBottom();
 }
 
