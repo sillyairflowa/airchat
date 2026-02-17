@@ -65,15 +65,15 @@ function addMessage(data) {
 
         div.innerHTML = `
             <strong>${data.username}:</strong><br>
-            <img src="uploads/${data.file}" width="150"><br>
+            <img src="uploads/${data.file}" width="140"><br>
             ${data.message || ""}
         `;
 
         // Create download button
         const downloadBtn = document.createElement("button");
         downloadBtn.textContent = "download";
-        downloadBtn.style.fontSize = "7px";
-        downloadBtn.style.padding = "8px 5px";
+        downloadBtn.style.fontSize = "8px";
+        downloadBtn.style.padding = "4px 6px";
         downloadBtn.style.marginTop = "10px";
 
         downloadBtn.onclick = function () {
