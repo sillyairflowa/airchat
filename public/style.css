@@ -55,3 +55,38 @@ button {
     border-radius: 6px;
     font-weight: bold;
 }
+/* Tablets */
+@media (max-width: 900px) {
+    .inputArea {
+        width: 100%;
+        left: 0;
+    }
+}
+
+/* Phones */
+@media (max-width: 600px) {
+    #messages {
+        padding: 10px;
+        padding-bottom: 120px;
+    }
+
+    #messages div {
+        font-size: 14px;
+    }
+
+    .inputArea {
+        width: 100%;
+        left: 0;
+        padding: 8px;
+    }
+
+    button {
+        padding: 6px 8px;
+        font-size: 14px;
+    }
+
+    #messageInput {
+        padding: 6px;
+        font-size: 14px;
+    }
+}
