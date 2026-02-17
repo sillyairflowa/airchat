@@ -72,9 +72,9 @@ function addMessage(data) {
         // Create download button
         const downloadBtn = document.createElement("button");
         downloadBtn.textContent = "⬇";
-        downloadBtn.style.fontSize = "12px";
-        downloadBtn.style.padding = "4px 6px";
-        downloadBtn.style.marginTop = "5px";
+        downloadBtn.style.fontSize = "10px";
+        downloadBtn.style.padding = "8px 5px";
+        downloadBtn.style.marginTop = "9px";
 
         downloadBtn.onclick = function () {
             const link = document.createElement("a");
