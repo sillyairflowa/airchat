@@ -5,6 +5,37 @@ const messageInput = document.getElementById("messageInput");
 const usernameInput = document.getElementById("username");
 const fileInput = document.getElementById("fileInput");
 
+
+// =======================
+// Typing Indicator Setup
+// =======================
+
+let typingDiv = document.createElement("div");
+typingDiv.style.fontStyle = "italic";
+typingDiv.style.padding = "5px 20px";
+typingDiv.style.color = "gray";
+typingDiv.style.display = "none";
+
+messagesDiv.parentNode.insertBefore(typingDiv, messagesDiv.nextSibling);
+
+let typingTimeout;
+
+messageInput.addEventListener("input", () => {
+    const username = usernameInput.value.trim() || "Anonymous";
+
+    socket.emit("typing", username);
+
+    clearTimeout(typingTimeout);
+    typingTimeout = setTimeout(() => {
+        socket.emit("stopTyping");
+    }, 1000);
+});
+
+
+// =======================
+// Socket Listeners
+// =======================
+
 socket.on("loadMessages", (msgs) => {
     messagesDiv.innerHTML = "";
     msgs.forEach(addMessage);
@@ -17,6 +48,20 @@ socket.on("chatMessage", (data) => {
 socket.on("clearMessages", () => {
     messagesDiv.innerHTML = "";
 });
+
+socket.on("typing", (username) => {
+    typingDiv.textContent = username + " is typing...";
+    typingDiv.style.display = "block";
+});
+
+socket.on("stopTyping", () => {
+    typingDiv.style.display = "none";
+});
+
+
+// =======================
+// Send Message
+// =======================
 
 function send() {
 
@@ -44,6 +89,7 @@ function send() {
 
             messageInput.value = "";
             fileInput.value = "";
+            socket.emit("stopTyping");
         });
 
     } else {
@@ -54,8 +100,14 @@ function send() {
         });
 
         messageInput.value = "";
+        socket.emit("stopTyping");
     }
 }
+
+
+// =======================
+// Add Message
+// =======================
 
 function addMessage(data) {
 
@@ -69,7 +121,6 @@ function addMessage(data) {
             ${data.message || ""}
         `;
 
-        // Create download button
         const downloadBtn = document.createElement("button");
         downloadBtn.textContent = "download";
         downloadBtn.style.fontSize = "8px";
@@ -99,6 +150,10 @@ function addMessage(data) {
     scrollToBottom();
 }
 
+
+// =======================
+// Helpers
+// =======================
 
 function pickFile() {
     fileInput.click();
