@@ -62,12 +62,33 @@ function addMessage(data) {
     const div = document.createElement("div");
 
     if (data.file) {
+
         div.innerHTML = `
             <strong>${data.username}:</strong><br>
             <img src="uploads/${data.file}" width="150"><br>
             ${data.message || ""}
         `;
+
+        // Create download button
+        const downloadBtn = document.createElement("button");
+        downloadBtn.textContent = "⬇";
+        downloadBtn.style.fontSize = "12px";
+        downloadBtn.style.padding = "4px 6px";
+        downloadBtn.style.marginTop = "5px";
+
+        downloadBtn.onclick = function () {
+            const link = document.createElement("a");
+            link.href = "uploads/" + data.file;
+            link.download = data.file;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+        };
+
+        div.appendChild(downloadBtn);
+
     } else {
+
         div.innerHTML = `
             <strong>${data.username}:</strong>
             ${data.message}
@@ -77,6 +98,7 @@ function addMessage(data) {
     messagesDiv.appendChild(div);
     scrollToBottom();
 }
+
 
 function pickFile() {
     fileInput.click();
