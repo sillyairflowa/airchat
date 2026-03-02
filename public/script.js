@@ -5,7 +5,6 @@ const messageInput = document.getElementById("messageInput");
 const usernameInput = document.getElementById("username");
 const fileInput = document.getElementById("fileInput");
 
-
 // =======================
 // Typing Indicator
 // =======================
@@ -31,7 +30,6 @@ messageInput.addEventListener("input", () => {
     }, 1000);
 });
 
-
 // =======================
 // Socket Listeners
 // =======================
@@ -46,11 +44,6 @@ socket.on("chatMessage", (data) => {
     addMessage(data);
 });
 
-socket.on("clearMessages", () => {
-    messagesDiv.innerHTML = "";
-    messagesDiv.appendChild(typingDiv);
-});
-
 socket.on("typing", (username) => {
     typingDiv.textContent = username + " is typing...";
     typingDiv.style.display = "block";
@@ -60,7 +53,6 @@ socket.on("typing", (username) => {
 socket.on("stopTyping", () => {
     typingDiv.style.display = "none";
 });
-
 
 // =======================
 // Send Message
@@ -73,6 +65,11 @@ function send() {
 
     if (!message && !fileInput.files[0]) return;
 
+    if (message.length > 500) {
+        alert("Message too long");
+        return;
+    }
+
     if (fileInput.files[0]) {
 
         const formData = new FormData();
@@ -84,6 +81,7 @@ function send() {
         })
         .then(res => res.json())
         .then(data => {
+
             socket.emit("chatMessage", {
                 username,
                 message,
@@ -107,44 +105,41 @@ function send() {
     }
 }
 
-
 // =======================
-// Add Message
+// Add Message (Safe)
 // =======================
 
 function addMessage(data) {
 
     const div = document.createElement("div");
 
+    const strong = document.createElement("strong");
+    strong.innerText = data.username + ": ";
+    div.appendChild(strong);
+
     if (data.file) {
 
         const fileUrl = "uploads/" + data.file;
         const ext = data.file.split(".").pop().toLowerCase();
 
-        div.innerHTML = `<strong>${data.username}:</strong><br>`;
-
         let media;
 
-        // Video files
         if (["mp4", "webm", "mov"].includes(ext)) {
             media = document.createElement("video");
             media.controls = true;
             media.width = 200;
         }
-
-        // Audio files
         else if (["mp3", "wav", "ogg"].includes(ext)) {
             media = document.createElement("audio");
             media.controls = true;
         }
-
-        // Image files (default)
         else {
             media = document.createElement("img");
             media.width = 140;
         }
 
         media.src = fileUrl;
+        div.appendChild(document.createElement("br"));
         div.appendChild(media);
 
         if (data.message) {
@@ -153,36 +148,29 @@ function addMessage(data) {
             div.appendChild(text);
         }
 
-        // Download button
         const downloadBtn = document.createElement("button");
-        downloadBtn.textContent = "download";
-        downloadBtn.style.fontSize = "8px";
-        downloadBtn.style.padding = "4px 6px";
-        downloadBtn.style.marginTop = "8px";
+        downloadBtn.textContent = "Download";
+        downloadBtn.style.fontSize = "10px";
+        downloadBtn.style.marginTop = "6px";
 
-        downloadBtn.onclick = function () {
+        downloadBtn.onclick = () => {
             const link = document.createElement("a");
             link.href = fileUrl;
             link.download = data.file;
-            document.body.appendChild(link);
             link.click();
-            document.body.removeChild(link);
         };
 
         div.appendChild(downloadBtn);
 
     } else {
-
-        div.innerHTML = `
-            <strong>${data.username}:</strong>
-            ${data.message}
-        `;
+        const text = document.createElement("span");
+        text.innerText = data.message;
+        div.appendChild(text);
     }
 
     messagesDiv.insertBefore(div, typingDiv);
     scrollToBottom();
 }
-
 
 // =======================
 // Helpers
