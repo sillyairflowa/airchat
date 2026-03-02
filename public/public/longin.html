@@ -1,1 +1,81 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Login - AirChat</title>
+    <style>
+        body {
+            background: #111;
+            color: white;
+            font-family: Arial;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .box {
+            background: #222;
+            padding: 30px;
+            border-radius: 8px;
+            width: 300px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            border: none;
+        }
+        button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .error {
+            color: red;
+        }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Login</h2>
+
+    <div class="error" id="error"></div>
+
+    <input id="email" placeholder="Email">
+    <input id="password" type="password" placeholder="Password">
+
+    <button onclick="login()">Login</button>
+
+    <p>Don't have an account?</p>
+    <button onclick="goRegister()">Create Account</button>
+</div>
+
+<script>
+function login() {
+    const email = document.getElementById("email").value;
+    const password = document.getElementById("password").value;
+
+    fetch("/login", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        if (data.error) {
+            document.getElementById("error").innerText = data.error;
+        } else {
+            window.location.href = "/";
+        }
+    });
+}
+
+function goRegister() {
+    window.location.href = "/register.html";
+}
+</script>
+
+</body>
+</html>
 
