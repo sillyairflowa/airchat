@@ -1,4 +1,4 @@
-const express = require("express");
+ const express = require("express");
 const http = require("http");
 const { Server } = require("socket.io");
 const multer = require("multer");
@@ -24,7 +24,7 @@ if (!fs.existsSync(uploadPath)) {
 
 
 // =======================
-// Multer Setup
+// Multer Setup (Safer)
 // =======================
 
 const storage = multer.diskStorage({
@@ -32,13 +32,13 @@ const storage = multer.diskStorage({
         cb(null, uploadPath);
     },
     filename: (req, file, cb) => {
-        cb(null, Date.now() + "-" + file.originalname);
+        cb(null, Date.now() + "-" + file.originalname.replace(/\s+/g, "_"));
     }
 });
 
 const upload = multer({
     storage: storage,
-    limits: { fileSize: 40 * 1024 * 1024 }
+    limits: { fileSize: 8 * 1024 * 1024 } // 8MB max
 });
 
 
@@ -54,6 +54,14 @@ app.use(express.static("public"));
 // =======================
 
 let messages = [];
+const MAX_MESSAGES = 64;
+
+
+// =======================
+// Basic Rate Limit Map
+// =======================
+
+const messageCooldown = new Map();
 
 
 // =======================
@@ -62,31 +70,49 @@ let messages = [];
 
 io.on("connection", (socket) => {
 
-    // Send existing messages
     socket.emit("loadMessages", messages);
 
-    // Handle chat message
     socket.on("chatMessage", (data) => {
 
-        messages.push(data);
+        if (!data || !data.username || !data.message) return;
 
-        if (messages.length >= 64) {
-            messages = [];
-            io.emit("clearMessages");
+        // Limit message length
+        if (data.message.length > 500) return;
+
+        // Rate limit (1 message per 500ms)
+        const now = Date.now();
+        const lastMessage = messageCooldown.get(socket.id) || 0;
+
+        if (now - lastMessage < 500) return;
+
+        messageCooldown.set(socket.id, now);
+
+        const cleanMessage = {
+            username: String(data.username).slice(0, 20),
+            message: String(data.message).slice(0, 500),
+            time: now
+        };
+
+        messages.push(cleanMessage);
+
+        if (messages.length > MAX_MESSAGES) {
+            messages.shift(); // remove oldest instead of clearing all
         }
 
-        io.emit("chatMessage", data);
+        io.emit("chatMessage", cleanMessage);
     });
 
-    // Typing indicator
     socket.on("typing", (username) => {
-        socket.broadcast.emit("typing", username);
+        socket.broadcast.emit("typing", String(username).slice(0, 20));
     });
 
     socket.on("stopTyping", () => {
         socket.broadcast.emit("stopTyping");
     });
 
+    socket.on("disconnect", () => {
+        messageCooldown.delete(socket.id);
+    });
 });
 
 
