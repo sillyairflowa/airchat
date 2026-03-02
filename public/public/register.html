@@ -1,1 +1,93 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <title>Register - AirChat</title>
+    <style>
+        body {
+            background: #111;
+            color: white;
+            font-family: Arial;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+        }
+        .box {
+            background: #222;
+            padding: 30px;
+            border-radius: 8px;
+            width: 300px;
+        }
+        input {
+            width: 100%;
+            padding: 8px;
+            margin: 8px 0;
+            border: none;
+        }
+        button {
+            width: 100%;
+            padding: 8px;
+            margin-top: 10px;
+            cursor: pointer;
+        }
+        .error {
+            color: red;
+        }
+        .success {
+            color: lightgreen;
+        }
+    </style>
+</head>
+<body>
+
+<div class="box">
+    <h2>Create Account</h2>
+
+    <div id="message"></div>
+
+    <input id="email" placeholder="Email">
+    <input id="username" placeholder="Username">
+    <input id="password" type="password" placeholder="Password">
+
+    <button onclick="register()">Create</button>
+
+    <p>Already have an account?</p>
+    <button onclick="goLogin()">Login</button>
+</div>
+
+<script>
+function register() {
+    const email = document.getElementById("email").value;
+    const username = document.getElementById("username").value;
+    const password = document.getElementById("password").value;
+
+    fetch("/register", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ email, username, password })
+    })
+    .then(res => res.json())
+    .then(data => {
+        const msg = document.getElementById("message");
+
+        if (data.error) {
+            msg.className = "error";
+            msg.innerText = data.error;
+        } else {
+            msg.className = "success";
+            msg.innerText = "Account created! Redirecting...";
+            setTimeout(() => {
+                window.location.href = "/login.html";
+            }, 1500);
+        }
+    });
+}
+
+function goLogin() {
+    window.location.href = "/login.html";
+}
+</script>
+
+</body>
+</html>
 
